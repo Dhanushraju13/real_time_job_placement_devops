@@ -13,6 +13,7 @@ pipeline {
   }
 
   environment {
+    DOCKER_EXE = 'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
     BACKEND_IMAGE = 'placement-backend'
     FRONTEND_IMAGE = 'placement-frontend'
     IMAGE_TAG = "${env.BUILD_NUMBER ?: 'latest'}"
@@ -35,12 +36,12 @@ pipeline {
         echo "Stage 2: Backend Unit & Integration Tests (Pytest)"
         echo "=========================================================="
         // 1. Build backend test runner image with dependencies
-        bat 'docker build -t placement-backend:test ./backend'
+        bat '"%DOCKER_EXE%" build -t placement-backend:test ./backend'
 
-        // 2. Execute Pytest suite and generate JUnit XML report
+        // 2. Execute Pytest suite inside the container and generate JUnit XML report
         bat '''
           if not exist test-results mkdir test-results
-          docker run --rm -e DATABASE_URL=sqlite:///test.db -v "%cd%\\test-results:/app/test-results" placement-backend:test python -m pytest -v --junitxml=test-results/pytest-results.xml
+          "%DOCKER_EXE%" run --rm -e DATABASE_URL=sqlite:///test.db -v "%cd%\\test-results:/app/test-results" placement-backend:test python -m pytest -v --junitxml=test-results/pytest-results.xml
         '''
       }
       post {
@@ -70,10 +71,10 @@ pipeline {
         echo "Stage 4: Build Versioned Docker Images (${IMAGE_TAG})"
         echo "=========================================================="
         bat """
-          docker version
-          docker compose version
-          docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend
-          docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ./frontend
+          "%DOCKER_EXE%" version
+          "%DOCKER_EXE%" compose version
+          "%DOCKER_EXE%" build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend
+          "%DOCKER_EXE%" build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ./frontend
         """
       }
     }
@@ -87,7 +88,9 @@ pipeline {
         echo "Stage 5: Container Security Vulnerability Scan"
         echo "=========================================================="
         bat(
-          script: "docker run --rm -v //var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 ${BACKEND_IMAGE}:${IMAGE_TAG} || echo Trivy scan completed",
+          script: """
+            "%DOCKER_EXE%" run --rm -v //var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 ${BACKEND_IMAGE}:${IMAGE_TAG} || echo Trivy scan completed
+          """,
           returnStatus: true
         )
       }
@@ -107,16 +110,16 @@ pipeline {
           passwordVariable: 'DOCKER_PASS'
         )]) {
           bat """
-            echo %DOCKER_PASS% | docker login -u "%DOCKER_USER%" --password-stdin
-            docker tag ${BACKEND_IMAGE}:${IMAGE_TAG} %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
-            docker tag ${BACKEND_IMAGE}:latest %DOCKER_USER%/${BACKEND_IMAGE}:latest
-            docker tag ${FRONTEND_IMAGE}:${IMAGE_TAG} %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
-            docker tag ${FRONTEND_IMAGE}:latest %DOCKER_USER%/${FRONTEND_IMAGE}:latest
-            docker push %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
-            docker push %DOCKER_USER%/${BACKEND_IMAGE}:latest
-            docker push %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
-            docker push %DOCKER_USER%/${FRONTEND_IMAGE}:latest
-            docker logout
+            echo %DOCKER_PASS% | "%DOCKER_EXE%" login -u "%DOCKER_USER%" --password-stdin
+            "%DOCKER_EXE%" tag ${BACKEND_IMAGE}:${IMAGE_TAG} %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
+            "%DOCKER_EXE%" tag ${BACKEND_IMAGE}:latest %DOCKER_USER%/${BACKEND_IMAGE}:latest
+            "%DOCKER_EXE%" tag ${FRONTEND_IMAGE}:${IMAGE_TAG} %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
+            "%DOCKER_EXE%" tag ${FRONTEND_IMAGE}:latest %DOCKER_USER%/${FRONTEND_IMAGE}:latest
+            "%DOCKER_EXE%" push %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
+            "%DOCKER_EXE%" push %DOCKER_USER%/${BACKEND_IMAGE}:latest
+            "%DOCKER_EXE%" push %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
+            "%DOCKER_EXE%" push %DOCKER_USER%/${FRONTEND_IMAGE}:latest
+            "%DOCKER_EXE%" logout
           """
         }
       }
@@ -130,8 +133,8 @@ pipeline {
         bat """
           set BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG}
           set FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG}
-          docker compose down --remove-orphans || ver >nul
-          docker compose up -d
+          "%DOCKER_EXE%" compose down --remove-orphans || ver >nul
+          "%DOCKER_EXE%" compose up -d
         """
       }
     }
@@ -185,7 +188,7 @@ pipeline {
   post {
     always {
       echo "Cleaning up temporary test artifacts..."
-      bat(script: 'docker rmi placement-backend:test >nul 2>&1', returnStatus: true)
+      bat(script: '"%DOCKER_EXE%" rmi placement-backend:test >nul 2>&1', returnStatus: true)
     }
     success {
       echo """
@@ -204,7 +207,7 @@ pipeline {
   Dumping diagnostic container logs:
 ===================================================================
       """
-      bat(script: 'docker compose logs --tail=50', returnStatus: true)
+      bat(script: '"%DOCKER_EXE%" compose logs --tail=50', returnStatus: true)
     }
   }
 }
