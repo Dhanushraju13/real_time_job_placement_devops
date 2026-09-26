@@ -87,12 +87,11 @@ pipeline {
         echo "=========================================================="
         echo "Stage 5: Container Security Vulnerability Scan"
         echo "=========================================================="
-        bat(
-          script: """
-            "%DOCKER_EXE%" run --rm -v //var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 ${BACKEND_IMAGE}:${IMAGE_TAG} || echo Trivy scan completed
-          """,
-          returnStatus: true
-        )
+        bat """
+          "%DOCKER_EXE%" save -o backend-scan.tar ${BACKEND_IMAGE}:${IMAGE_TAG}
+          "%DOCKER_EXE%" run --rm -v "%cd%:/scan" aquasec/trivy:latest image --input /scan/backend-scan.tar --severity HIGH,CRITICAL --exit-code 0 || echo Trivy scan completed with warnings
+          if exist backend-scan.tar del /f /q backend-scan.tar
+        """
       }
     }
 
@@ -189,6 +188,7 @@ pipeline {
     always {
       echo "Cleaning up temporary test artifacts..."
       bat(script: '"%DOCKER_EXE%" rmi placement-backend:test >nul 2>&1', returnStatus: true)
+      bat(script: 'if exist backend-scan.tar del /f /q backend-scan.tar >nul 2>&1', returnStatus: true)
     }
     success {
       echo """
