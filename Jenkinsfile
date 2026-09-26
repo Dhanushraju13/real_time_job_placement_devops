@@ -35,6 +35,9 @@ pipeline {
     // Docker Compose executable
     COMPOSE_EXE = 'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker-compose.exe'
 
+    // Python executable
+    PYTHON_EXE = 'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
+
     // Docker image names
     BACKEND_IMAGE = 'placement-backend'
     FRONTEND_IMAGE = 'placement-frontend'
@@ -342,7 +345,29 @@ pipeline {
         echo "Stage 9: End-to-End Smoke Tests"
         echo "=========================================================="
 
-        bat 'python scripts\\smoke_test.py http://localhost:8081'
+        bat '''
+          echo Checking Python availability...
+          where python || ver >nul
+          where py || ver >nul
+
+          where py >nul 2>&1
+          if %ERRORLEVEL% equ 0 (
+            echo Windows Python launcher detected. Running smoke test with py...
+            py scripts\\smoke_test.py http://localhost:8081
+          ) else (
+            where python >nul 2>&1
+            if %ERRORLEVEL% equ 0 (
+              echo Python detected in PATH. Running smoke test with python...
+              python scripts\\smoke_test.py http://localhost:8081
+            ) else if exist "%PYTHON_EXE%" (
+              echo Falling back to full Python executable path: %PYTHON_EXE%
+              "%PYTHON_EXE%" scripts\\smoke_test.py http://localhost:8081
+            ) else (
+              echo ERROR: Python executable not found!
+              exit /b 1
+            )
+          )
+        '''
       }
     }
   }
