@@ -2,6 +2,7 @@ pipeline {
   agent any
 
   parameters {
+
     booleanParam(
       name: 'PUSH_TO_DOCKERHUB',
       defaultValue: false,
@@ -29,16 +30,28 @@ pipeline {
 
   environment {
 
-    // Docker executable
-    DOCKER_EXE = 'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+    // ==========================================================
+    // DOCKER
+    // ==========================================================
+
+    DOCKER_EXE =
+      'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
 
     // Docker Compose executable
-    COMPOSE_EXE = 'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker-compose.exe'
+    COMPOSE_EXE =
+      'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker-compose.exe'
 
-    // Python executable
-    PYTHON_EXE = 'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
+    // ==========================================================
+    // PYTHON
+    // ==========================================================
 
-    // Docker image names
+    PYTHON_EXE =
+      'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
+
+    // ==========================================================
+    // DOCKER IMAGE NAMES
+    // ==========================================================
+
     BACKEND_IMAGE = 'placement-backend'
     FRONTEND_IMAGE = 'placement-frontend'
 
@@ -48,6 +61,7 @@ pipeline {
     // Test database
     DATABASE_URL = 'sqlite:///test.db'
   }
+
 
   stages {
 
@@ -147,10 +161,16 @@ pipeline {
           "%COMPOSE_EXE%" version
 
           echo Building backend Docker image...
-          "%DOCKER_EXE%" build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend
+          "%DOCKER_EXE%" build ^
+            -t ${BACKEND_IMAGE}:${IMAGE_TAG} ^
+            -t ${BACKEND_IMAGE}:latest ^
+            ./backend
 
           echo Building frontend Docker image...
-          "%DOCKER_EXE%" build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ./frontend
+          "%DOCKER_EXE%" build ^
+            -t ${FRONTEND_IMAGE}:${IMAGE_TAG} ^
+            -t ${FRONTEND_IMAGE}:latest ^
+            ./frontend
         """
       }
     }
@@ -175,7 +195,9 @@ pipeline {
         echo "=========================================================="
 
         bat """
-          "%DOCKER_EXE%" save -o backend-scan.tar ${BACKEND_IMAGE}:${IMAGE_TAG}
+          "%DOCKER_EXE%" save ^
+            -o backend-scan.tar ^
+            ${BACKEND_IMAGE}:${IMAGE_TAG}
 
           "%DOCKER_EXE%" run --rm ^
             -v "%cd%:/scan" ^
@@ -219,19 +241,37 @@ pipeline {
         ]) {
 
           bat """
-            echo %DOCKER_PASS% | "%DOCKER_EXE%" login -u "%DOCKER_USER%" --password-stdin
+            echo %DOCKER_PASS% | "%DOCKER_EXE%" login ^
+              -u "%DOCKER_USER%" ^
+              --password-stdin
 
-            "%DOCKER_EXE%" tag ${BACKEND_IMAGE}:${IMAGE_TAG} %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
-            "%DOCKER_EXE%" tag ${BACKEND_IMAGE}:latest %DOCKER_USER%/${BACKEND_IMAGE}:latest
+            "%DOCKER_EXE%" tag ^
+              ${BACKEND_IMAGE}:${IMAGE_TAG} ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
 
-            "%DOCKER_EXE%" tag ${FRONTEND_IMAGE}:${IMAGE_TAG} %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
-            "%DOCKER_EXE%" tag ${FRONTEND_IMAGE}:latest %DOCKER_USER%/${FRONTEND_IMAGE}:latest
+            "%DOCKER_EXE%" tag ^
+              ${BACKEND_IMAGE}:latest ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:latest
 
-            "%DOCKER_EXE%" push %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
-            "%DOCKER_EXE%" push %DOCKER_USER%/${BACKEND_IMAGE}:latest
+            "%DOCKER_EXE%" tag ^
+              ${FRONTEND_IMAGE}:${IMAGE_TAG} ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
 
-            "%DOCKER_EXE%" push %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
-            "%DOCKER_EXE%" push %DOCKER_USER%/${FRONTEND_IMAGE}:latest
+            "%DOCKER_EXE%" tag ^
+              ${FRONTEND_IMAGE}:latest ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:latest
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:latest
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:latest
 
             "%DOCKER_EXE%" logout
           """
@@ -346,27 +386,15 @@ pipeline {
         echo "=========================================================="
 
         bat '''
-          echo Checking Python availability...
-          where python || ver >nul
-          where py || ver >nul
+          echo ================================================
+          echo Running smoke tests with Python 3.12
+          echo ================================================
 
-          where py >nul 2>&1
-          if %ERRORLEVEL% equ 0 (
-            echo Windows Python launcher detected. Running smoke test with py...
-            py scripts\\smoke_test.py http://localhost:8081
-          ) else (
-            where python >nul 2>&1
-            if %ERRORLEVEL% equ 0 (
-              echo Python detected in PATH. Running smoke test with python...
-              python scripts\\smoke_test.py http://localhost:8081
-            ) else if exist "%PYTHON_EXE%" (
-              echo Falling back to full Python executable path: %PYTHON_EXE%
-              "%PYTHON_EXE%" scripts\\smoke_test.py http://localhost:8081
-            ) else (
-              echo ERROR: Python executable not found!
-              exit /b 1
-            )
-          )
+          echo Python executable:
+          "%PYTHON_EXE%" --version
+
+          echo Running smoke test...
+          "%PYTHON_EXE%" scripts\\smoke_test.py http://localhost:8081
         '''
       }
     }
