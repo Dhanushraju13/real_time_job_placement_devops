@@ -287,7 +287,7 @@ pipeline {
           $attempt = 1
           $isHealthy = $false
 
-          Write-Host "Polling system health status on Nginx ingress (http://localhost/health)..."
+          Write-Host "Polling system health status on Nginx ingress (http://localhost:8081/health)..."
 
           while ($attempt -le $maxRetries) {
 
@@ -296,7 +296,7 @@ pipeline {
             try {
 
               $response = Invoke-RestMethod `
-                -Uri "http://localhost/health" `
+                -Uri "http://localhost:8081/health" `
                 -Method Get `
                 -TimeoutSec 3 `
                 -ErrorAction Stop
@@ -342,7 +342,7 @@ pipeline {
         echo "Stage 9: End-to-End Smoke Tests"
         echo "=========================================================="
 
-        bat 'python scripts\\smoke_test.py http://localhost'
+        bat 'python scripts\\smoke_test.py http://localhost:8081'
       }
     }
   }
@@ -384,11 +384,11 @@ pipeline {
 ===================================================================
   SUCCESS: BUILD #${env.IMAGE_TAG} DEPLOYED AND VERIFIED!
 
-  Application URL: http://localhost
+  Application URL: http://localhost:8081
 
-  API Documentation: http://localhost/api/docs
+  API Documentation: http://localhost:8081/api/docs
 
-  Health Endpoint: http://localhost/health
+  Health Endpoint: http://localhost:8081/health
 ===================================================================
       """
     }
