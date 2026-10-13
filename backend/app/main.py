@@ -683,13 +683,21 @@ def list_jobs(
     # Only authenticated administrators may enumerate pending/closed jobs or request ALL.
     # Public and student job discovery must never expose jobs awaiting approval.
     if requested_status == "ALL":
-        if not user or user.role != "ADMIN":
-            raise HTTPException(status_code=403, detail="Only administrators can view all job statuses")
-        query = db.query(Job)
+        if not user or user.role not in ["ADMIN", "RECRUITER"]:
+            raise HTTPException(status_code=403, detail="Only administrators and recruiters can view all job statuses")
+        if user.role == "ADMIN":
+            query = db.query(Job)
+        else:
+            rec_id = user.recruiter_profile.id if user.recruiter_profile else None
+            query = db.query(Job).filter(Job.recruiter_id == rec_id) if rec_id else db.query(Job)
     elif requested_status and requested_status != "ACTIVE":
-        if not user or user.role != "ADMIN":
-            raise HTTPException(status_code=403, detail="Only administrators can view non-active jobs")
-        query = db.query(Job).filter(Job.status == requested_status)
+        if not user or user.role not in ["ADMIN", "RECRUITER"]:
+            raise HTTPException(status_code=403, detail="Only administrators and recruiters can view non-active jobs")
+        if user.role == "ADMIN":
+            query = db.query(Job).filter(Job.status == requested_status)
+        else:
+            rec_id = user.recruiter_profile.id if user.recruiter_profile else None
+            query = db.query(Job).filter(Job.status == requested_status, Job.recruiter_id == rec_id) if rec_id else db.query(Job).filter(Job.status == requested_status)
     else:
         query = db.query(Job).filter(Job.status == "ACTIVE")
 

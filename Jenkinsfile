@@ -2,274 +2,472 @@ pipeline {
   agent any
 
   parameters {
-    booleanParam(name: 'PUSH_TO_DOCKERHUB', defaultValue: false, description: 'Push built versioned Docker images to Docker Hub')
-    string(name: 'DOCKERHUB_CREDENTIALS_ID', defaultValue: 'dockerhub-credentials', description: 'Jenkins Credentials ID (Username with password) for Docker Hub')
-    booleanParam(name: 'SECURITY_SCAN', defaultValue: true, description: 'Run Trivy container vulnerability security scan')
-    choice(name: 'ENVIRONMENT', choices: ['staging', 'production', 'local'], description: 'Deployment target environment')
+
+    booleanParam(
+      name: 'PUSH_TO_DOCKERHUB',
+      defaultValue: false,
+      description: 'Push built versioned Docker images to Docker Hub'
+    )
+
+    string(
+      name: 'DOCKERHUB_CREDENTIALS_ID',
+      defaultValue: 'dockerhub-credentials',
+      description: 'Jenkins Credentials ID (Username with password)'
+    )
+
+    booleanParam(
+      name: 'SECURITY_SCAN',
+      defaultValue: true,
+      description: 'Run Trivy container vulnerability security scan'
+    )
+
+    choice(
+      name: 'ENVIRONMENT',
+      choices: ['staging', 'production', 'local'],
+      description: 'Deployment target environment'
+    )
   }
 
   environment {
+
+    // ==========================================================
+    // DOCKER
+    // ==========================================================
+
+    DOCKER_EXE =
+      'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+
+    // Docker Compose executable
+    COMPOSE_EXE =
+      'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker-compose.exe'
+
+    // ==========================================================
+    // PYTHON
+    // ==========================================================
+
+    PYTHON_EXE =
+      'C:\\Users\\hp5cd\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
+
+    // ==========================================================
+    // DOCKER IMAGE NAMES
+    // ==========================================================
+
     BACKEND_IMAGE = 'placement-backend'
     FRONTEND_IMAGE = 'placement-frontend'
+
+    // Jenkins build number becomes Docker image tag
     IMAGE_TAG = "${env.BUILD_NUMBER ?: 'latest'}"
+
+    // Test database
     DATABASE_URL = 'sqlite:///test.db'
+
+    // System PATH augmentation for tools on Windows host
+    PATH = "C:\\Program Files\\nodejs;C:\\Users\\hp5cd\\AppData\\Local\\Programs\\Python\\Python312;C:\\Users\\hp5cd\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
   }
 
+
   stages {
+
+    // ==========================================================
+    // STAGE 1 - CHECKOUT
+    // ==========================================================
+
     stage('Checkout') {
       steps {
+
         echo "=========================================================="
         echo "Stage 1: Checkout Source Code"
         echo "=========================================================="
+
         checkout scm
       }
     }
 
+
+    // ==========================================================
+    // STAGE 2 - BACKEND TESTS
+    // ==========================================================
+
     stage('Backend Tests') {
       steps {
+
         echo "=========================================================="
         echo "Stage 2: Backend Unit & Integration Tests (Pytest)"
         echo "=========================================================="
-        // 1. Build test runner image with backend code and dependencies
-        sh 'docker build -t placement-backend:test ./backend'
-        
-        // 2. Execute Pytest suite with isolated test DB and generate JUnit XML report
-        sh '''
-          docker run --rm \
-            -e DATABASE_URL="sqlite:///test.db" \
-            -v "$(pwd)":/reports \
-            placement-backend:test \
-            python -m pytest -v --junitxml=/reports/backend-test-results.xml
+
+        // Build backend test image
+        bat '"%DOCKER_EXE%" build -t placement-backend:test ./backend'
+
+        // Run pytest inside Docker container
+        bat '''
+          if not exist test-results mkdir test-results
+
+          "%DOCKER_EXE%" run --rm ^
+            -e DATABASE_URL=sqlite:///test.db ^
+            -v "%cd%\\test-results:/app/test-results" ^
+            placement-backend:test ^
+            python -m pytest -v --junitxml=test-results/pytest-results.xml
         '''
       }
+
       post {
         always {
-          junit testResults: 'backend-test-results.xml', allowEmptyResults: true
+
+          junit(
+            testResults: 'test-results/pytest-results.xml',
+            allowEmptyResults: true
+          )
         }
       }
     }
+
+
+    // ==========================================================
+    // STAGE 3 - FRONTEND BUILD
+    // ==========================================================
 
     stage('Frontend Build') {
       steps {
+
         echo "=========================================================="
         echo "Stage 3: Frontend Build & Asset Verification"
         echo "=========================================================="
-        // Compile and bundle React + Vite assets in isolated node container
-        sh '''
-          docker run --rm \
-            -v "$(pwd)/frontend:/app" \
-            -w /app \
-            node:22-alpine \
-            sh -c "npm install && npm run build"
+
+        bat '''
+          cd frontend
+
+          call npm install
+
+          call npm run build
+
+          cd ..
         '''
       }
     }
+
+
+    // ==========================================================
+    // STAGE 4 - DOCKER IMAGE BUILD
+    // ==========================================================
 
     stage('Docker Image Build') {
       steps {
+
         echo "=========================================================="
         echo "Stage 4: Build Versioned Docker Images (${IMAGE_TAG})"
         echo "=========================================================="
-        // Build production images tagged with BUILD_NUMBER and latest
-        sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend"
-        sh "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ./frontend"
-      }
-    }
 
-    stage('Security Scanning') {
-      when {
-        expression { return params.SECURITY_SCAN == true }
-      }
-      steps {
-        echo "=========================================================="
-        echo "Stage 5: Container Security Vulnerability Scan"
-        echo "=========================================================="
-        sh '''
-          # Run Trivy vulnerability scanner on the built backend container image
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy:latest image \
-            --severity HIGH,CRITICAL \
-            --exit-code 0 \
-            placement-backend:${IMAGE_TAG} || echo "Trivy scan completed with warnings"
-        '''
-      }
-    }
+        bat """
+          "%DOCKER_EXE%" version
 
-    stage('Docker Hub Push') {
-      when {
-        expression { return params.PUSH_TO_DOCKERHUB == true }
-      }
-      steps {
-        echo "=========================================================="
-        echo "Stage 6: Authenticate & Push Images to Docker Hub"
-        echo "=========================================================="
-        // Pull credentials securely from Jenkins Credentials Store without hardcoding
-        withCredentials([usernamePassword(
-          credentialsId: params.DOCKERHUB_CREDENTIALS_ID,
-          usernameVariable: 'DOCKER_USER',
-          passwordVariable: 'DOCKER_PASS'
-        )]) {
-          sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            
-            # Tag images with user repository namespace
-            docker tag ${BACKEND_IMAGE}:${IMAGE_TAG} ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
-            docker tag ${BACKEND_IMAGE}:latest ${DOCKER_USER}/${BACKEND_IMAGE}:latest
-            docker tag ${FRONTEND_IMAGE}:${IMAGE_TAG} ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}
-            docker tag ${FRONTEND_IMAGE}:latest ${DOCKER_USER}/${FRONTEND_IMAGE}:latest
+          echo Checking Docker Compose...
+          "%COMPOSE_EXE%" version
 
-            # Push versioned and latest images
-            docker push ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
-            docker push ${DOCKER_USER}/${BACKEND_IMAGE}:latest
-            docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}
-            docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:latest
+          echo Building backend Docker image...
+          "%DOCKER_EXE%" build ^
+            -t ${BACKEND_IMAGE}:${IMAGE_TAG} ^
+            -t ${BACKEND_IMAGE}:latest ^
+            ./backend
 
-            # Log out from registry
-            docker logout
-          '''
-        }
-      }
-    }
-
-    stage('Deploy') {
-      steps {
-        echo "=========================================================="
-        echo "Stage 7: Deploying Stack using Docker Compose (${IMAGE_TAG})"
-        echo "=========================================================="
-        sh """
-          export BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG}
-          export FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG}
-          docker compose down --remove-orphans || true
-          docker compose up -d
+          echo Building frontend Docker image...
+          "%DOCKER_EXE%" build ^
+            -t ${FRONTEND_IMAGE}:${IMAGE_TAG} ^
+            -t ${FRONTEND_IMAGE}:latest ^
+            ./frontend
         """
       }
     }
 
+
+    // ==========================================================
+    // STAGE 5 - SECURITY SCANNING
+    // ==========================================================
+
+    stage('Security Scanning') {
+
+      when {
+        expression {
+          return params.SECURITY_SCAN == true
+        }
+      }
+
+      steps {
+
+        echo "=========================================================="
+        echo "Stage 5: Container Security Vulnerability Scan"
+        echo "=========================================================="
+
+        bat """
+          "%DOCKER_EXE%" save ^
+            -o backend-scan.tar ^
+            ${BACKEND_IMAGE}:${IMAGE_TAG}
+
+          "%DOCKER_EXE%" run --rm ^
+            -v "%cd%:/scan" ^
+            aquasec/trivy:latest ^
+            image ^
+            --input /scan/backend-scan.tar ^
+            --severity HIGH,CRITICAL ^
+            --exit-code 0 ^
+            || echo Trivy scan completed with warnings
+
+          if exist backend-scan.tar del /f /q backend-scan.tar
+        """
+      }
+    }
+
+
+    // ==========================================================
+    // STAGE 6 - DOCKER HUB PUSH
+    // ==========================================================
+
+    stage('Docker Hub Push') {
+
+      when {
+        expression {
+          return params.PUSH_TO_DOCKERHUB == true
+        }
+      }
+
+      steps {
+
+        echo "=========================================================="
+        echo "Stage 6: Authenticate & Push Images to Docker Hub"
+        echo "=========================================================="
+
+        withCredentials([
+          usernamePassword(
+            credentialsId: params.DOCKERHUB_CREDENTIALS_ID,
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+          )
+        ]) {
+
+          bat """
+            echo %DOCKER_PASS% | "%DOCKER_EXE%" login ^
+              -u "%DOCKER_USER%" ^
+              --password-stdin
+
+            "%DOCKER_EXE%" tag ^
+              ${BACKEND_IMAGE}:${IMAGE_TAG} ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
+
+            "%DOCKER_EXE%" tag ^
+              ${BACKEND_IMAGE}:latest ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:latest
+
+            "%DOCKER_EXE%" tag ^
+              ${FRONTEND_IMAGE}:${IMAGE_TAG} ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
+
+            "%DOCKER_EXE%" tag ^
+              ${FRONTEND_IMAGE}:latest ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:latest
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:${IMAGE_TAG}
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${BACKEND_IMAGE}:latest
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:${IMAGE_TAG}
+
+            "%DOCKER_EXE%" push ^
+              %DOCKER_USER%/${FRONTEND_IMAGE}:latest
+
+            "%DOCKER_EXE%" logout
+          """
+        }
+      }
+    }
+
+
+    // ==========================================================
+    // STAGE 7 - DEPLOY
+    // ==========================================================
+
+    stage('Deploy') {
+      steps {
+
+        echo "=========================================================="
+        echo "Stage 7: Deploying Stack using Docker Compose (${IMAGE_TAG})"
+        echo "=========================================================="
+
+        bat """
+          echo Using Docker Compose:
+          "%COMPOSE_EXE%" version
+
+          echo Setting backend image...
+          set BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG}
+
+          echo Setting frontend image...
+          set FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG}
+
+          echo Stopping existing containers...
+          "%COMPOSE_EXE%" down --remove-orphans || ver >nul
+
+          echo Starting application...
+          "%COMPOSE_EXE%" up -d
+
+          echo Deployment command completed.
+        """
+      }
+    }
+
+
+    // ==========================================================
+    // STAGE 8 - HEALTH CHECK
+    // ==========================================================
+
     stage('Health Check') {
       steps {
+
         echo "=========================================================="
-        echo "Stage 8: Resilient Health & Readiness Polling"
+        echo "Stage 8: Resilient Health & Readiness Polling (PowerShell)"
         echo "=========================================================="
-        sh '''
-          MAX_RETRIES=15
-          WAIT_INTERVAL=4
-          ATTEMPT=1
-          IS_HEALTHY=false
 
-          echo "Polling system health status on Nginx ingress (http://localhost/health)..."
-          while [ $ATTEMPT -le $MAX_RETRIES ]; do
-            echo "Health check attempt $ATTEMPT of $MAX_RETRIES..."
-            
-            # Query health endpoint through reverse proxy
-            STATUS=$(docker compose exec -T backend python -c "
-import urllib.request, json
-try:
-    res = urllib.request.urlopen('http://localhost:8000/health', timeout=3)
-    data = json.loads(res.read().decode())
-    print(data.get('status', 'DOWN'))
-except Exception:
-    print('CONNECT_FAIL')
-" 2>/dev/null || echo "EXEC_FAIL")
+        powershell '''
+          $maxRetries = 15
+          $waitInterval = 4
+          $attempt = 1
+          $isHealthy = $false
 
-            if [ "$STATUS" = "UP" ]; then
-              echo "Backend service is UP and healthy!"
-              IS_HEALTHY=true
-              break
-            fi
+          Write-Host "Polling system health status on Nginx ingress (http://localhost:8081/health)..."
 
-            ATTEMPT=$((ATTEMPT + 1))
-            sleep $WAIT_INTERVAL
-          done
+          while ($attempt -le $maxRetries) {
 
-          if [ "$IS_HEALTHY" != "true" ]; then
-            echo "Health check failed after $MAX_RETRIES attempts."
-            docker compose logs --tail=100
+            Write-Host "Health check attempt $attempt of $maxRetries..."
+
+            try {
+
+              $response = Invoke-RestMethod `
+                -Uri "http://localhost:8081/health" `
+                -Method Get `
+                -TimeoutSec 3 `
+                -ErrorAction Stop
+
+              if ($response.status -eq "UP") {
+
+                Write-Host "Service is UP and healthy!"
+
+                $isHealthy = $true
+
+                break
+              }
+
+            } catch {
+
+              Write-Host "Health check attempt $attempt failed, retrying in ${waitInterval}s..."
+            }
+
+            $attempt++
+
+            Start-Sleep -Seconds $waitInterval
+          }
+
+          if (-not $isHealthy) {
+
+            Write-Error "Health check failed after $maxRetries attempts."
+
             exit 1
-          fi
+          }
         '''
       }
     }
 
+
+    // ==========================================================
+    // STAGE 9 - SMOKE TESTS
+    // ==========================================================
+
     stage('Smoke Tests') {
       steps {
+
         echo "=========================================================="
         echo "Stage 9: End-to-End Smoke Tests"
         echo "=========================================================="
-        // Run comprehensive smoke test suite verifying Health, OpenAPI, Jobs, SPA, & Auth
-        sh '''
-          docker compose exec -T backend python -c "
-import urllib.request, json
 
-base = 'http://nginx:80'
+        bat '''
+          echo ================================================
+          echo Running smoke tests with Python 3.12
+          echo ================================================
 
-# 1. Health
-with urllib.request.urlopen(f'{base}/health', timeout=5) as r:
-    assert r.status == 200, f'Health failed: {r.status}'
-    data = json.loads(r.read().decode())
-    assert data.get('status') == 'UP', 'Status not UP'
-print('  [PASS] Public health endpoint')
+          echo Python executable:
+          "%PYTHON_EXE%" --version
 
-# 2. OpenAPI Spec
-with urllib.request.urlopen(f'{base}/openapi.json', timeout=5) as r:
-    assert r.status == 200
-    spec = json.loads(r.read().decode())
-    assert 'openapi' in spec
-print('  [PASS] OpenAPI schema endpoint')
-
-# 3. Public Jobs API
-with urllib.request.urlopen(f'{base}/api/jobs', timeout=5) as r:
-    assert r.status == 200
-    jobs = json.loads(r.read().decode())
-    assert isinstance(jobs, list)
-print(f'  [PASS] Jobs API endpoint ({len(jobs)} active jobs)')
-
-# 4. Frontend SPA
-with urllib.request.urlopen(f'{base}/', timeout=5) as r:
-    assert r.status == 200
-    html = r.read().decode()
-    assert 'root' in html
-print('  [PASS] Frontend SPA ingress')
-
-# 5. Auth Login API
-login_data = json.dumps({'email': 'admin@placement.edu', 'password': 'Admin@123'}).encode()
-req = urllib.request.Request(f'{base}/api/auth/login', data=login_data, headers={'Content-Type': 'application/json'})
-with urllib.request.urlopen(req, timeout=5) as r:
-    assert r.status == 200
-    token_data = json.loads(r.read().decode())
-    assert 'access_token' in token_data
-print('  [PASS] Authentication API login')
-
-print('All Smoke Tests Passed Successfully!')
-"
+          echo Running smoke test...
+          "%PYTHON_EXE%" scripts\\smoke_test.py http://localhost:8081
         '''
       }
     }
   }
 
+
+  // ==========================================================
+  // POST ACTIONS
+  // ==========================================================
+
   post {
+
+    // ----------------------------------------------------------
+    // ALWAYS
+    // ----------------------------------------------------------
+
     always {
+
       echo "Cleaning up temporary test artifacts..."
-      sh 'docker rmi placement-backend:test 2>/dev/null || true'
+
+      bat(
+        script: '"%DOCKER_EXE%" rmi placement-backend:test >nul 2>&1',
+        returnStatus: true
+      )
+
+      bat(
+        script: 'if exist backend-scan.tar del /f /q backend-scan.tar >nul 2>&1',
+        returnStatus: true
+      )
     }
+
+
+    // ----------------------------------------------------------
+    // SUCCESS
+    // ----------------------------------------------------------
+
     success {
+
       echo """
 ===================================================================
   SUCCESS: BUILD #${env.IMAGE_TAG} DEPLOYED AND VERIFIED!
+
   Application URL: http://localhost:8081
+
   API Documentation: http://localhost:8081/api/docs
+
   Health Endpoint: http://localhost:8081/health
 ===================================================================
       """
     }
+
+
+    // ----------------------------------------------------------
+    // FAILURE
+    // ----------------------------------------------------------
+
     failure {
+
       echo """
 ===================================================================
   FAILURE: BUILD #${env.IMAGE_TAG} ENCOUNTERED ERRORS!
+
   Dumping diagnostic container logs:
 ===================================================================
       """
-      sh 'docker compose logs --tail=50 || true'
+
+      bat(
+        script: '"%COMPOSE_EXE%" logs --tail=50',
+        returnStatus: true
+      )
     }
   }
 }
