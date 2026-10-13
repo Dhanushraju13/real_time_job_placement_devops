@@ -1,3 +1,5 @@
+name: placementhub
+
 services:
   frontend:
     build: ./frontend

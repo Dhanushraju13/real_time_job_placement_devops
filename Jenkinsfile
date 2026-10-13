@@ -307,8 +307,15 @@ pipeline {
           echo Stopping existing containers...
           "%COMPOSE_EXE%" down --remove-orphans || ver >nul
 
+          echo Ensuring port 8081 is free...
+          for /f "tokens=1" %%c in ('"%DOCKER_EXE%" ps -q --filter publish=8081') do (
+            echo Releasing port 8081 from container %%c...
+            "%DOCKER_EXE%" stop %%c >nul 2>&1
+            "%DOCKER_EXE%" rm -f %%c >nul 2>&1
+          )
+
           echo Starting application...
-          "%COMPOSE_EXE%" up -d
+          "%COMPOSE_EXE%" up -d --remove-orphans
 
           echo Deployment command completed.
         """
