@@ -3,7 +3,7 @@ pipeline {
 
   parameters {
     booleanParam(name: 'PUSH_TO_DOCKERHUB', defaultValue: false, description: 'Push built versioned Docker images to Docker Hub')
-    stringParam(name: 'DOCKERHUB_CREDENTIALS_ID', defaultValue: 'dockerhub-credentials', description: 'Jenkins Credentials ID (Username with password) for Docker Hub')
+    string(name: 'DOCKERHUB_CREDENTIALS_ID', defaultValue: 'dockerhub-credentials', description: 'Jenkins Credentials ID (Username with password) for Docker Hub')
     booleanParam(name: 'SECURITY_SCAN', defaultValue: true, description: 'Run Trivy container vulnerability security scan')
     choice(name: 'ENVIRONMENT', choices: ['staging', 'production', 'local'], description: 'Deployment target environment')
   }
