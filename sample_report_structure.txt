@@ -1,0 +1,458 @@
+5: [Normal] COIMBATORE INSTITUTE OF TECHNOLOGY
+6: [Normal] (Government Aided Autonomous Institution Affiliated to Anna University)
+8: [Normal] 23IT723 - DEVOPS LABORATORY
+9: [Normal] PROJECT
+10: [Normal] DIGITAL CANTEEN
+13: [Normal] OCTOBER 2026
+18: [Normal] Submitted by
+20: [Normal] 2303717620522022  JAYASREE R
+26: [Normal] COIMBATOREINSTITUTEOFTECHNOLOGY
+27: [Normal] (Government Aided Autonomous Institution Affiliated to Anna University)
+28: [Normal] BONAFIDE CERTIFICATE
+30: [Normal] Certified that this project report titled “DIGITAL CANTEEN” is the bonafide work of 23037176230722022- JAYASREE R  completed during the academic year 2025-2026-Semester VII for the project presentation of 23IT723 - DEVOPS LABORATORY under our supervision.
+33: [Normal] Certified that the candidate was examined by using the project work   examination.
+35: [Normal] Review Members:
+36: [Normal] Dr.M.Sangeetha
+37: [Normal] Dr.E.Arul
+44: [Normal] 23IT723 – DEVOPS LABORATORY
+45: [Normal] FINAL MINI PROJECT – EVALUATION SCHEME
+46: [Normal] Final Mini Project Assessment
+47: [Normal] The final mini project shall require students to integrate the major DevOps practices covered in the laboratory. The project should demonstrate practical implementation of version control, collaborative development, Continuous Integration, containerization and/or automated configuration/provisioning, with proper execution evidence.
+50: [Normal] Recommended Mark Distribution within the Final Demonstration
+51: [Normal] For uniform evaluation, the examiner may use the following internal split for the implementation and demonstration components.
+52: [Normal] Minimum Evidence to be Submitted
+53: [List Bullet] Project repository URL and project README.
+54: [List Bullet] Git commit history and branch/merge evidence.
+55: [List Bullet] Jenkins job/pipeline configuration and successful build evidence.
+56: [List Bullet] Dockerfile, image and running container evidence where Docker is used.
+57: [List Bullet] Automation/configuration scripts where applicable.
+58: [List Bullet] Application execution and testing evidence.
+59: [List Bullet] Architecture/workflow diagram.
+60: [List Bullet] Short technical report containing implementation steps, results and troubleshooting.
+61: [List Bullet] Live demonstration of the complete DevOps workflow.
+62: [Normal] Evaluation Guidelines
+63: [List Bullet] Marks shall be awarded primarily for a working implementation and demonstrable output.
+64: [List Bullet] Copied source code without functional understanding shall not receive full marks.
+65: [List Bullet] Screenshots may support the evaluation, but critical components should be demonstrated live wherever possible.
+66: [List Bullet] Students should use meaningful repository names, branch names and commit messages.
+67: [List Bullet] If a component is not applicable to the selected project, the student shall obtain faculty approval and demonstrate an equivalent DevOps automation component.
+68: [List Bullet] The final viva shall focus on the student's own implementation, commands used, tool configuration and troubleshooting.
+69: [Normal] Faculty Evaluation Record
+72: [Normal] TABLE OF CONTENTS
+81: [Normal] 1. INTRODUCTION
+82: [Normal] The Digital Canteen is a web-based food ordering and management system developed to simplify the process of ordering food in a canteen environment. The system allows users to browse available food items, search for dishes, select food items, add them to a cart, and place orders through a digital interface. An admin dashboard is also provided to view and manage placed orders.The application is developed using HTML, CSS, JavaScript, Python, Flask, and SQLite, with Flask handling backend operations and SQLite storing order information. The project also incorporates DevOps practices to automate the development, testing, and deployment process. Git and GitHub are used for source code management, while Jenkins automates the CI/CD pipeline. Docker provides application containerization, Pytest performs automated testing, and Ansible automates deployment and container configuration. A Docker Volume is used to provide persistent storage for the SQLite database.The project combines a functional food ordering system with DevOps automation to provide a structured and reliable approach to application development and deployment.
+83: [Normal] 2.OBJECTIVES
+84: [Normal] To develop a digital food ordering system that enables users to browse, search, select food items, add  them to a cart, and place orders conveniently.
+85: [Normal] To implement an admin dashboard for viewing placed orders and maintaining order information using SQLite.
+86: [Normal] To organize order data systematically and provide quick access to stored order details through the admin dashboard.
+87: [Normal] To implement DevOps practices throughout the application development and deployment process using Git, GitHub, and Jenkins.
+88: [Normal] To automate the CI/CD workflow using Jenkins for building, testing, and deploying the application.
+89: [Normal] To containerize the application using Docker to provide a consistent and portable execution environment.
+90: [Normal] To integrate Pytest for automated testing to verify application functionality and reduce errors before deployment.
+91: [Normal] To automate application deployment and container configuration using Ansible.
+92: [Normal] To implement Docker Volume for persistent storage of the SQLite database and ensure that order information is retained even when the application container is recreated.
+93: [Normal] Top of Form
+95: [Normal] Bottom of Form
+103: [Normal] 3. ABSTRACT
+104: [Normal] The Digital Canteen is a web-based food ordering and management system designed to simplify the process of ordering food in a canteen environment. Traditional canteen operations may involve long queues, manual order processing, difficulty in managing multiple orders, and challenges in maintaining order records. The proposed system provides a digital platform where users can browse available food items, search for dishes, select food items, add them to a cart, and place orders conveniently. An administrative dashboard is also provided for viewing and managing placed orders. The application is developed using HTML, CSS, JavaScript, Python, Flask, and SQLite, with Flask handling backend operations and SQLite storing order information. The project also implements DevOps practices to automate the software development, testing, and deployment process. Git and GitHub are used for version control and source code management, while Jenkins automates the CI/CD pipeline. Docker is used to containerize the application and provide a consistent execution environment, Pytest performs automated testing, and Ansible automates application deployment and container configuration. A Docker Volume named canteen_data is used to provide persistent storage for the SQLite database, ensuring that stored order information is retained even when the application container is recreated. The complete workflow follows GitHub → Jenkins → Docker Build → Pytest → Ansible → Docker Container → Flask → SQLite, demonstrating the integration of a functional web application with modern DevOps practices and persistent data management.
+105: [Normal] 4.TECHNOLOGY STACK
+109: [Normal] 5.SYSTEM ARCHITECTURE
+111: [Normal] Development: Developer creates and updates the Digital Canteen application.
+112: [Normal] Source Code Management: The application source code and configuration files are maintained using Git.
+113: [Normal] GitHub Repository: The updated code is pushed to the GitHub repository for centralized source code management.
+114: [Normal] Jenkins Trigger: Jenkins retrieves the latest source code from the GitHub repository and starts the CI/CD pipeline.
+115: [Normal] Docker Build: Jenkins builds the application into a Docker image containing the Flask application and required dependencies.
+116: [Normal] Automated Testing: Jenkins runs Pytest to verify the application before deployment.
+117: [Normal] Deployment Automation: After successful testing, Jenkins invokes Ansible to automate the deployment process.
+118: [Normal] Container Configuration: Ansible creates and configures the Docker container with the required image, port mapping, restart policy, and volume configuration.
+119: [Normal] Application Execution: The Docker container runs the Flask backend, HTML/CSS/JavaScript frontend, and SQLite database.
+120: [Normal] User Interaction: Students can browse food items, search for dishes, add items to the cart, and place orders through the application.
+121: [Normal] Admin Management: The admin dashboard allows administrators to view and monitor the placed order information stored in the database.
+122: [Normal] MODULE 1 — USER INTERFACE & FOOD ORDERING
+123: [Normal] This module provides the user-facing interface of the Digital Canteen application. It is designed to make food browsing and ordering simple and convenient for students.
+124: [Normal] Main Features
+125: [Normal] Displays available food items with relevant details.
+126: [Normal] Provides a search option to find food items quickly.
+127: [Normal] Organizes food items into different categories.
+128: [Normal] Allows users to select individual food items.
+129: [Normal] Allows selected items to be added to the shopping cart.
+130: [Normal] Provides cart management for selected food items.
+131: [Normal] Displays the selected items and order details before confirmation.
+132: [Normal] Allows users to place the final order.
+133: [Normal] Provides order confirmation after successful submission.
+134: [Normal] Provides a simple and user-friendly interface for accessing canteen services.
+135: [Normal] Uses responsive interface elements for better usability.
+136: [Normal] Connects the user interface with the Flask backend for processing requests.
+137: [Normal] Technologies: HTML, CSS, JavaScript.
+139: [Normal] Figure 7.1: Digital Canteen Home Page
+140: [Normal] Figure 7.2: Food Selection and Shopping Cart
+142: [Normal] MODULE 2 — FLASK BACKEND & ORDER MANAGEMENT
+143: [Normal] This module handles the application logic and acts as the communication layer between the frontend and the SQLite database. Flask processes user requests and manages the complete order submission process.
+144: [Normal] Main Functions
+145: [Normal] Receives requests from the frontend.
+146: [Normal] Processes food selection requests.
+147: [Normal] Handles cart and order processing.
+148: [Normal] Processes order submissions.
+149: [Normal] Generates and manages order information.
+150: [Normal] Communicates with the SQLite database.
+151: [Normal] Stores submitted order information.
+152: [Normal] Retrieves stored order information.
+153: [Normal] Handles requests related to the admin dashboard.
+154: [Normal] Connects the frontend interface with backend services.
+155: [Normal] Processes application routes and requests.
+156: [Normal] Runs the Flask application inside the Docker container.
+157: [Normal] Provides the backend services required by the Digital Canteen application.
+158: [Normal] Technology: Python with Flask.
+160: [Normal] Figure 7.3: Flask Backend Implementation
+162: [Normal] MODULE 3 — SQLITE DATABASE MANAGEMENT
+163: [Normal] This module manages the storage and retrieval of order information using SQLite. The database provides persistent application data that can be accessed by the Flask backend.
+164: [Normal] Main Functions
+165: [Normal] Stores placed orders.
+166: [Normal] Maintains order records.
+167: [Normal] Stores order-related information.
+168: [Normal] Provides database access to the Flask backend.
+169: [Normal] Allows stored orders to be retrieved.
+170: [Normal] Makes stored orders available to the admin dashboard.
+171: [Normal] Maintains the canteen.db database file.
+172: [Normal] Stores the database under the application data directory.
+173: [Normal] Works with the Docker Volume for persistent storage.
+174: [Normal] Provides structured storage for order information.
+175: [Normal] Maintains order data even when the application container is recreated, through the configured Docker Volume.
+177: [Normal] Database Location
+178: [Normal] data/canteen.db
+179: [Normal] Inside the Docker container:
+180: [Normal] /app/data/canteen.db
+181: [Normal] Technology: SQLite.
+182: [Normal] Figure 7.4: SQLite Database Containing Order Information
+184: [Normal] MODULE 4 — GIT & GITHUB SOURCE CONTROL
+185: [Normal] This module manages the source code and maintains the development history of the Digital Canteen project. Git is used locally for version control, while GitHub provides the remote repository.
+186: [Normal] Main Functions
+187: [Normal] Initializes the project as a Git repository.
+188: [Normal] Tracks changes made to project files.
+189: [Normal] Creates commits for project updates.
+190: [Normal] Maintains the history of project development.
+191: [Normal] Allows changes to be reviewed through Git history.
+192: [Normal] Pushes project code to GitHub.
+193: [Normal] Provides a centralized remote repository.
+194: [Normal] Allows Jenkins to retrieve the latest source code.
+195: [Normal] Maintains the important project files in one repository.
+196: [Normal] Supports integration between source control and the Jenkins pipeline.
+197: [Normal] Helps maintain different versions of the project.
+199: [Normal] Main Project Files
+200: [Normal] app.py
+201: [Normal] Dockerfile
+202: [Normal] Jenkinsfile
+203: [Normal] test_app.py
+204: [Normal] requirements.txt
+205: [Normal] .gitignore
+206: [Normal] Technologies: Git and GitHub.
+207: [Normal] Figure 7.5: Digital Canteen GitHub Repository
+209: [Normal] MODULE 5 — DOCKER CONTAINERIZATION
+210: [Normal] Docker is used to package and run the Digital Canteen application in an isolated and consistent environment. The application and its required dependencies are packaged into a Docker image.
+211: [Normal] Main Functions
+212: [Normal] Creates a Docker image from the application.
+213: [Normal] Packages the application and required dependencies.
+214: [Normal] Provides an isolated execution environment.
+215: [Normal] Creates the application container from the Docker image.
+216: [Normal] Runs the Flask application inside the container.
+217: [Normal] Provides port mapping for application access.
+218: [Normal] Provides a consistent environment for testing and deployment.
+219: [Normal] Allows the application to run independently of the host environment.
+220: [Normal] Works with Jenkins for automated image creation.
+221: [Normal] Works with Ansible for automated deployment.
+222: [Normal] Provides a repeatable application deployment environment.
+223: [Normal] Docker Configuration
+224: [Normal] Docker Image:
+225: [Normal] digital-canteen-ci
+226: [Normal] Docker Container:
+227: [Normal] digital-canteen-ansible
+228: [Normal] Port Mapping:
+229: [Normal] 5001 → 5000
+230: [Normal] The application can be accessed through:
+231: [Normal] http://localhost:5001
+232: [Normal] Technology: Docker.
+233: [Normal] Docker Flow
+237: [Normal] Figure 7.6: Digital Canteen Docker Image
+239: [Normal] Figure 7.7: Running Digital Canteen Docker Container
+241: [Normal] MODULE 6 — JENKINS CI/CD PIPELINE
+242: [Normal] Jenkins is used to automate the Continuous Integration and Continuous Deployment process. It connects the source code repository with the application build, testing, and deployment stages.
+243: [Normal] Main Functions
+244: [Normal] Retrieves the latest source code from GitHub.
+245: [Normal] Checks out the required project version.
+246: [Normal] Builds the Docker image.
+247: [Normal] Executes automated tests.
+248: [Normal] Provides a sequence of automated pipeline stages.
+249: [Normal] Prevents later stages from proceeding when an earlier stage fails.
+250: [Normal] Invokes the Ansible playbook after successful testing.
+251: [Normal] Provides pipeline execution logs.
+252: [Normal] Reports pipeline success or failure.
+253: [Normal] Automates the overall CI/CD process.
+254: [Normal] Reduces repetitive manual build and deployment activities.
+255: [Normal] Figure 7.8: Jenkins CI/CD Pipeline
+256: [Normal] Figure 7.9: Successful Jenkins Pipeline Execution
+258: [Normal] MODULE 7 — AUTOMATED TESTING
+259: [Normal] This module validates the application automatically before deployment. Pytest is integrated into the Jenkins pipeline so that the application is tested before the deployment stage.
+260: [Normal] Main Functions
+261: [Normal] Uses Pytest for automated testing.
+262: [Normal] Maintains the test file test_app.py.
+263: [Normal] Executes the test inside the Docker image.
+264: [Normal] Verifies the configured application test.
+265: [Normal] Provides automated test execution.
+266: [Normal] Prevents deployment from continuing when an earlier pipeline stage fails.
+267: [Normal] Displays test results in Jenkins.
+268: [Normal] Integrates testing directly into the CI/CD workflow.
+269: [Normal] Reduces the need for repeated manual testing.
+270: [Normal] Helps identify application issues before deployment.
+271: [Normal] Test File
+272: [Normal] test_app.py
+273: [Normal] Test Command
+274: [Normal] python -m pytest test_app.py
+275: [Normal] Test Result
+276: [Normal] collected 1 item
+277: [Normal] test_app.py . [100%]
+278: [Normal] 1 passed
+280: [Normal] Figure 7.10: Successful Automated Test Execution
+283: [Normal] MODULE 8 — ANSIBLE DEPLOYMENT
+284: [Normal] Ansible is used to automate the deployment and configuration of the Digital Canteen Docker container. The deployment configuration is defined in the Ansible playbook.
+285: [Normal] Main Functions
+286: [Normal] Executes the deployment playbook.
+287: [Normal] Specifies the Docker container name.
+288: [Normal] Specifies the Docker image.
+289: [Normal] Configures application port mapping.
+290: [Normal] Configures persistent volume mounting.
+291: [Normal] Defines the container state.
+292: [Normal] Defines the restart policy.
+293: [Normal] Uses Docker to apply the specified configuration.
+294: [Normal] Automates container deployment.
+295: [Normal] Allows deployment to be triggered through Jenkins.
+296: [Normal] Provides a repeatable deployment configuration.
+297: [Normal] Deployment Configuration
+298: [Normal] name: digital-canteen-ansible
+299: [Normal] image: digital-canteen-ci
+300: [Normal] published_ports:
+301: [Normal] - "5001:5000"
+302: [Normal] volumes:
+303: [Normal] - "canteen_data:/app/data"
+306: [Normal] Figure 7.11: Ansible Deployment Playbook
+307: [Normal] MODULE 9 — PERSISTENT STORAGE
+308: [Normal] This module ensures that database information remains available even when the application container is recreated. Docker Volume is used to separate persistent application data from the container lifecycle.
+309: [Normal] Main Functions
+310: [Normal] Creates persistent storage for application data.
+311: [Normal] Uses the Docker Volume canteen_data.
+312: [Normal] Mounts the volume to /app/data.
+313: [Normal] Stores the SQLite database in the mounted directory.
+314: [Normal] Separates persistent data from the container lifecycle.
+315: [Normal] Allows the database to remain available after container recreation.
+316: [Normal] Preserves stored order information.
+317: [Normal] Provides persistent storage for the SQLite database.
+318: [Normal] Allows the application container to be recreated without losing stored order data.
+319: [Normal] Storage Configuration
+320: [Normal] canteen_data:/app/data
+321: [Normal] Storage Flow
+324: [Normal] Figure 7.12: Canteen Data Docker Volume
+326: [Normal] MODULE 10 — ADMIN & ORDER MANAGEMENT
+327: [Normal] This module provides access to the orders placed by users. The Flask backend stores the order information in SQLite, while the admin dashboard provides access to the stored records.
+328: [Normal] Main Functions
+329: [Normal] Receives orders placed by users.
+330: [Normal] Processes order information through Flask.
+331: [Normal] Stores order information in SQLite.
+332: [Normal] Generates an order ID.
+333: [Normal] Makes stored orders available to the administrator.
+334: [Normal] Provides access to order information through the admin dashboard.
+335: [Normal] Allows the administrator to view stored orders.
+336: [Normal] Connects the application workflow with database records.
+337: [Normal] Provides a centralized view of placed orders.
+339: [Normal] Admin Dashboard
+340: [Normal] http://localhost:5001/admin
+341: [Normal] Figure 7.13: Digital Canteen Admin Dashboard
+343: [Normal] MODULE 11 — CI/CD INTEGRATION
+344: [Normal] This module integrates the different DevOps tools into a single automated workflow. GitHub, Jenkins, Docker, Pytest, and Ansible work together to automate the build, testing, and deployment process.
+345: [Normal] Main Functions
+346: [Normal] Integrates GitHub with Jenkins.
+347: [Normal] Retrieves the latest project code.
+348: [Normal] Checks out the required project version.
+349: [Normal] Builds the Docker image automatically.
+350: [Normal] Runs Pytest automatically.
+351: [Normal] Triggers Ansible deployment after successful testing.
+352: [Normal] Creates and manages the Docker container.
+353: [Normal] Provides a repeatable deployment process.
+354: [Normal] Produces execution results for each pipeline stage.
+355: [Normal] Reduces repetitive manual deployment activities.
+356: [Normal] Connects source control, testing, containerization, and deployment into one workflow.
+357: [Normal] Figure 7.14: Complete CI/CD Pipeline Execution
+359: [Normal] MODULE 12 — APPLICATION & DEPLOYMENT VERIFICATION
+360: [Normal] This module verifies that the complete Digital Canteen system is functioning correctly after deployment. Verification is performed across the application, Docker container, database, storage, Ansible deployment, and Jenkins pipeline.
+361: [Normal] Verification Activities
+362: [Normal] Checking the running Docker container.
+363: [Normal] Checking the application port.
+364: [Normal] Opening the Digital Canteen application.
+365: [Normal] Browsing available food items.
+366: [Normal] Placing a food order.
+367: [Normal] Checking the generated order information.
+368: [Normal] Checking the admin dashboard.
+369: [Normal] Checking stored SQLite orders.
+370: [Normal] Checking the Docker Volume.
+371: [Normal] Checking Ansible execution.
+372: [Normal] Checking Jenkins pipeline results.
+373: [Normal] Confirming successful application deployment.
+374: [Normal] Verifying that order data remains available after container recreation.
+375: [Normal] Important Outputs
+376: [Normal] Docker Build → SUCCESS
+377: [Normal] Pytest → 1 PASSED
+378: [Normal] Ansible → failed=0
+379: [Normal] Pipeline → SUCCESS
+380: [Normal] Figure 7.15: Successfully Deployed Digital Canteen Application
+388: [Normal] 19. RESULTS AND OUTPUT
+389: [Normal] The implemented system successfully provides:
+390: [Normal] Digital food browsing
+391: [Normal] Food search
+392: [Normal] Category-based selection
+393: [Normal] Shopping cart
+394: [Normal] Order placement
+395: [Normal] Order ID generation
+396: [Normal] Admin dashboard
+397: [Normal] SQLite database storage
+398: [Normal] Docker containerization
+399: [Normal] Automated Pytest testing
+400: [Normal] Jenkins CI/CD automation
+401: [Normal] Ansible deployment
+402: [Normal] Persistent Docker Volume storage
+403: [Normal] COMMANDS USED
+404: [Normal] 1. Docker Environment
+405: [Normal] Check running containers
+406: [Normal] docker ps
+407: [Normal] Check all containers
+408: [Normal] docker ps -a
+409: [Normal] Start Ansible container
+410: [Normal] docker start ansible-docker-lab
+411: [Normal] Start Jenkins
+412: [Normal] docker start jenkins
+414: [Normal] 2. Jenkins Commands
+415: [Normal] Fix Docker socket permission for Jenkins
+416: [Normal] docker exec -u root jenkins chmod 666 /var/run/docker.sock
+417: [Normal] Verify Jenkins can access Docker
+418: [Normal] docker exec jenkins docker info
+419: [Normal] Check Jenkins port
+420: [Normal] docker port jenkins
+421: [Normal] Jenkins was accessed using:
+422: [Normal] http://localhost:9091
+424: [Normal] 3. Docker Image Build
+425: [Normal] Jenkins executes:
+426: [Normal] docker build -t digital-canteen-ci .
+427: [Normal] This creates the Docker image:
+428: [Normal] digital-canteen-ci
+430: [Normal] 4. Automated Testing
+431: [Normal] Jenkins executes:
+432: [Normal] docker run --rm digital-canteen-ci python -m pytest test_app.py
+433: [Normal] Expected result:
+434: [Normal] 1 passed
+436: [Normal] 5. Ansible Deployment
+437: [Normal] Jenkins executes:
+438: [Normal] docker exec ansible-docker-lab ansible-playbook -i /inventory.ini /docker-deploy.yml
+439: [Normal] This runs the Ansible playbook.
+440: [Normal] Run Ansible manually
+441: [Normal] docker exec ansible-docker-lab ansible-playbook -i /inventory.ini /docker-deploy.yml
+442: [Normal] View Ansible playbook
+443: [Normal] docker exec ansible-docker-lab cat /docker-deploy.yml
+445: [Normal] 6. Docker Container Verification
+446: [Normal] Check deployed container
+447: [Normal] docker ps
+448: [Normal] The Digital Canteen container:
+449: [Normal] digital-canteen-ansible
+450: [Normal] Port mapping:
+451: [Normal] 5001:5000
+452: [Normal] Application:
+453: [Normal] http://localhost:5001
+455: [Normal] 7. Docker Volume Commands
+456: [Normal] List Docker volumes
+457: [Normal] docker volume ls
+458: [Normal] Our volume:
+459: [Normal] canteen_data
+460: [Normal] Inspect the volume
+461: [Normal] docker volume inspect canteen_data
+463: [Normal] 8. SQLite Database Commands
+464: [Normal] Display stored orders
+465: [Normal] docker exec digital-canteen-ansible python -c "import sqlite3; c=sqlite3.connect('data/canteen.db'); [print(row) for row in c.execute('SELECT * FROM orders')]; c.close()"
+466: [Normal] Display database tables
+467: [Normal] docker exec digital-canteen-ansible python -c "import sqlite3; c=sqlite3.connect('data/canteen.db'); print(c.execute(\"SELECT name FROM sqlite_master WHERE type='table'\").fetchall()); c.close()"
+468: [Normal] Display all orders as a list
+469: [Normal] docker exec digital-canteen-ansible python -c "import sqlite3; c=sqlite3.connect('data/canteen.db'); print(c.execute('SELECT * FROM orders').fetchall()); c.close()"
+471: [Normal] 9. Docker Volume + Database Verification
+472: [Normal] To verify that the database exists inside the running container:
+473: [Normal] docker exec digital-canteen-ansible python -c "import sqlite3; c=sqlite3.connect('data/canteen.db'); print(c.execute('SELECT * FROM orders').fetchall()); c.close()"
+474: [Normal] The database location is:
+475: [Normal] data/canteen.db
+476: [Normal] and inside the container:
+477: [Normal] /app/data/canteen.db
+479: [Normal] 10. Git Commands Used
+480: [Normal] Initialize Git
+481: [Normal] git init
+482: [Normal] Check status
+483: [Normal] git status
+484: [Normal] Add files
+485: [Normal] git add .
+486: [Normal] Commit changes
+487: [Normal] git commit -m "Finalize Digital Canteen CI/CD project"
+488: [Normal] Check branches
+489: [Normal] git branch
+490: [Normal] Connect GitHub repository
+491: [Normal] git remote add origin https://github.com/Jayasree273/DigitalCanteen.git
+492: [Normal] Push to GitHub
+493: [Normal] git push -u origin master
+494: [Normal] Pull latest code
+495: [Normal] git pull origin master
+497: [Normal] 11. Useful Docker Commands Used During Implementation
+498: [Normal] List Docker images
+499: [Normal] docker images
+500: [Normal] Stop container
+501: [Normal] docker stop digital-canteen-ansible
+502: [Normal] Start container
+503: [Normal] docker start digital-canteen-ansible
+504: [Normal] View container logs
+505: [Normal] docker logs digital-canteen-ansible
+506: [Normal] Execute a command inside the container
+507: [Normal] docker exec digital-canteen-ansible ...
+510: [Normal] 12. Main Commands for Your Report
+511: [Normal] If your report doesn't need every troubleshooting command, these are the most important ones to include:
+512: [Normal] docker build -t digital-canteen-ci .
+513: [Normal] docker run --rm digital-canteen-ci python -m pytest test_app.py
+514: [Normal] docker exec ansible-docker-lab ansible-playbook -i /inventory.ini /docker-deploy.yml
+515: [Normal] docker ps
+516: [Normal] docker volume ls
+517: [Normal] docker volume inspect canteen_data
+518: [Normal] docker exec digital-canteen-ansible python -c "import sqlite3; c=sqlite3.connect('data/canteen.db'); print(c.execute('SELECT * FROM orders').fetchall()); c.close()"
+519: [Normal] And the Git commands:
+520: [Normal] git add .
+521: [Normal] git commit -m "Finalize Digital Canteen CI/CD project"
+522: [Normal] git push -u origin master
+524: [Normal] 21. ADVANTAGES
+525: [Normal] Reduces manual canteen ordering effort.
+526: [Normal] Provides a user-friendly ordering interface.
+527: [Normal] Provides centralized order information.
+528: [Normal] Automates application testing.
+529: [Normal] Reduces manual deployment effort.
+530: [Normal] Provides consistent application execution through Docker.
+531: [Normal] Provides persistent database storage.
+532: [Normal] Integrates source control with CI/CD.
+533: [Normal] Demonstrates automated deployment using Ansible.
+534: [Normal] 22. LIMITATIONS
+535: [Normal] The current system uses SQLite for database storage.
+536: [Normal] Online payment functionality is not implemented.
+537: [Normal] User authentication is not currently included.
+538: [Normal] Real-time order tracking is not implemented.
+539: [Normal] The deployment is demonstrated in a local Docker environment.
+540: [Normal] Monitoring and centralized logging are not implemented.
+551: [Normal] 23. CONCLUSION
+552: [Normal] The Digital Canteen successfully demonstrates the integration of a web-based food ordering system with modern DevOps practices to provide an efficient and automated application environment. The system enables users to browse available food items, search for dishes, add items to a cart, and place orders through a simple and user-friendly interface. The admin dashboard provides a centralized platform for viewing and managing the orders placed by users. Flask is used to handle the backend operations, while SQLite is used to store order information in the canteen.db database.The project also demonstrates the complete implementation of a Continuous Integration and Continuous Deployment (CI/CD) workflow. Git and GitHub are used for version control and source code management, allowing the project files to be maintained in a centralized repository. Jenkins automates the CI/CD pipeline by retrieving the latest source code, building the Docker image, executing automated tests, and initiating the deployment process. Pytest is integrated into the pipeline to verify the application before deployment, helping ensure that the application passes the defined automated tests. Docker provides containerization for the Digital Canteen application, allowing the Flask application and its required dependencies to run in a consistent environment. Ansible is used to automate the deployment and configuration of the Docker container through an Ansible playbook. The playbook defines important deployment configurations such as the container name, Docker image, port mapping, and volume mounting. A Docker Volume, canteen_data, is used to provide persistent storage for the SQLite database. The volume is mounted to /app/data, ensuring that order information remains available even when the application container is recreated or updated. Overall, the project demonstrates how application development, version control, automated testing, containerization, deployment automation, and persistent storage can be integrated into a single DevOps workflow. The successful execution of the pipeline confirms the practical implementation of GitHub → Jenkins → Docker → Pytest → Ansible → Flask → SQLite, providing a complete automated approach to deploying and maintaining the Digital Canteen system.
+554: [Normal] 24. FUTURE ENHANCEMENTS
+555: [Normal] The system can be extended with:
+556: [Normal] Online payment integration.
+557: [Normal] Student authentication.
+558: [Normal] Real-time order tracking.
+559: [Normal] Order status notifications.
+560: [Normal] Food availability management.
+561: [Normal] Multiple canteen support.
+562: [Normal] Cloud deployment.
+563: [Normal] PostgreSQL or MySQL integration.
+564: [Normal] GitHub webhook-based automatic triggering.
+565: [Normal] Application monitoring and centralized logging.

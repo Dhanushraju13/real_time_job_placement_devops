@@ -75,6 +75,11 @@ def get_current_user(
             detail="User not found",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if not getattr(user, "is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account has been suspended. Please contact administrator.",
+        )
     return user
 
 def get_optional_current_user(
@@ -94,7 +99,17 @@ def get_optional_current_user(
 
 def require_roles(allowed_roles: List[str]):
     def role_dependency(user: User = Depends(get_current_user)) -> User:
-        if user.role.upper() not in [r.upper() for r in allowed_roles]:
+        user_role = user.role.upper()
+        # Treat RECRUITER and EMPLOYER as equivalent
+        effective_roles = set()
+        for r in allowed_roles:
+            r_up = r.upper()
+            effective_roles.add(r_up)
+            if r_up in ["RECRUITER", "EMPLOYER"]:
+                effective_roles.add("RECRUITER")
+                effective_roles.add("EMPLOYER")
+
+        if user_role not in effective_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Access forbidden: role '{user.role}' is not authorized. Requires: {', '.join(allowed_roles)}"
@@ -103,6 +118,8 @@ def require_roles(allowed_roles: List[str]):
     return role_dependency
 
 require_student = require_roles(["STUDENT"])
-require_recruiter = require_roles(["RECRUITER"])
+require_recruiter = require_roles(["RECRUITER", "EMPLOYER"])
+require_employer = require_roles(["RECRUITER", "EMPLOYER"])
 require_admin = require_roles(["ADMIN"])
-require_recruiter_or_admin = require_roles(["RECRUITER", "ADMIN"])
+require_recruiter_or_admin = require_roles(["RECRUITER", "EMPLOYER", "ADMIN"])
+require_employer_or_admin = require_roles(["RECRUITER", "EMPLOYER", "ADMIN"])

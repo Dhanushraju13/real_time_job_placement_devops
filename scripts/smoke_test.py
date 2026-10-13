@@ -4,7 +4,7 @@ import json
 import urllib.request
 import urllib.error
 
-def run_smoke_tests(base_url="http://localhost"):
+def run_smoke_tests(base_url="http://localhost:8081"):
     print(f"=== Starting Smoke Tests against {base_url} ===")
     
     # Test 1: Public Health Check via Nginx
@@ -83,6 +83,6 @@ def run_smoke_tests(base_url="http://localhost"):
     return True
 
 if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else "http://localhost"
+    target = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8081"
     success = run_smoke_tests(target)
     sys.exit(0 if success else 1)

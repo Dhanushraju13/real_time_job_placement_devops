@@ -1,8 +1,11 @@
-# DevOps-Enabled Real-Time Job and Placement Management Platform
+# PartTime — Student Part-Time Job Portal
 
-A DevOps-focused campus recruitment and placement platform engineered with **React (Vite SPA)**, **FastAPI**, **PostgreSQL**, **Nginx Reverse Proxy**, **Docker Compose**, and **Jenkins CI/CD**.
+> **"MAKE THE WORKSPACE MORE HUMANS."**  
+> *Find flexible work. Earn while you learn.*
 
-Featuring **JWT Authentication**, **Role-Based Access Control (RBAC)** across **STUDENT**, **RECRUITER**, and **ADMIN** roles, an integrated **Application Workflow Pipeline**, and **Real-Time Interview Management**.
+A full-stack, DevOps-enabled student part-time job and shifts platform built with **React (Vite SPA)**, **FastAPI**, **PostgreSQL**, **Nginx Reverse Proxy**, **Docker Compose**, and **Jenkins CI/CD**.
+
+Featuring an editorial, human-centered theme with forest green (`#214B43`), warm cream panels (`#F7F5EF`), coral accents (`#FF7469`), oversized serif typography, original vector line-art illustrations, flexible hourly compensation in ₹, student work shift management, application pipeline, resume matching, and real-time WebSocket updates.
 
 ---
 
@@ -198,8 +201,8 @@ $$\text{match\_percentage} = \operatorname{round}\left(\frac{\text{matched requi
 | `DELETE`| `/api/admin/users/{id}` | Admin | Delete a user from platform |
 | `WS` | `/ws/notifications` | Public | Real-time WebSocket notifications broadcaster |
 
-- **Interactive Swagger Documentation**: `http://localhost/api/docs`
-- **OpenAPI Schema Specification**: `http://localhost/openapi.json`
+- **Interactive Swagger Documentation**: `http://localhost:8081/api/docs`
+- **OpenAPI Schema Specification**: `http://localhost:8081/openapi.json`
 
 ---
 
@@ -221,6 +224,9 @@ Pre-seeded out-of-the-box upon startup:
 ### 1. Start Services
 ```bash
 docker compose up --build -d
+
+Open the website at `http://localhost:8081`. Port `8081` is used to avoid conflicts with other services already using port 80.
+For local customization, copy `.env.example` to `.env` before starting the stack. The bundled credentials are development/demo credentials only; change them before any public deployment.
 ```
 
 ### 2. Verify Services
@@ -300,6 +306,6 @@ The project features an automated, multi-stage Jenkins Declarative Pipeline ([Je
 
 ### Running Smoke Tests Manually
 ```bash
-python scripts/smoke_test.py http://localhost
+python scripts/smoke_test.py http://localhost:8081
 ```
 

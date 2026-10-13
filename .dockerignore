@@ -1,0 +1,20 @@
+# Local environment and secrets
+.env
+.git
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Frontend artifacts/dependencies (installed inside Docker build)
+node_modules/
+dist/
+
+# Logs and editor files
+*.log
+.vscode/
+.idea/
